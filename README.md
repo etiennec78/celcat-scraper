@@ -14,7 +14,7 @@ Basic example of retrieving calendar events:
 
 ```python
 import asyncio
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from celcat_scraper import CelcatConfig, CelcatScraperAsync
 
 async def main():
@@ -29,7 +29,7 @@ async def main():
     # Create scraper instance and get events
     async with CelcatScraperAsync(config) as scraper:
 
-        start_date = datetime.now()
+        start_date = date.today()
         end_date = start_date + timedelta(days=30)
         
         # Recommended to store events locally and reduce the amout of requests

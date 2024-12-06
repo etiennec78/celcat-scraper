@@ -14,7 +14,7 @@ import asyncio
 from bs4 import BeautifulSoup
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 from functools import wraps
 import html
 import logging
@@ -124,8 +124,8 @@ class CelcatScraperAsync:
     Example:
         async with CelcatScraperAsync(config) as scraper:
             events = await scraper.get_calendar_events(
-                start=datetime.now(),
-                end=datetime.now() + timedelta(days=7)
+                start=date.today(),
+                end=start + timedelta(days=7)
             )
     """
 
@@ -339,7 +339,7 @@ class CelcatScraperAsync:
         else:
             raise CelcatCannotConnectError(f"HTTP {response.status}: {error_msg}")
 
-    async def _get_calendar_raw_data(self, start: datetime, end: datetime) -> Dict[str, Any]:
+    async def _get_calendar_raw_data(self, start: date, end: date) -> Dict[str, Any]:
         """Fetch raw calendar data for given time period."""
         _LOGGER.info('Getting calendar raw data')
 
@@ -504,8 +504,8 @@ class CelcatScraperAsync:
 
     async def get_calendar_events(
         self,
-        start: datetime,
-        end: datetime,
+        start: date,
+        end: date,
         previous_events: Optional[List[EventData]] = None
     ) -> List[EventData]:
         """Get calendar events for a specified time period.
@@ -517,8 +517,8 @@ class CelcatScraperAsync:
         - Using adaptive rate limiting to prevent server overload
 
         Args:
-            start: Start datetime
-            end: End datetime
+            start: Start date
+            end: End date
             previous_events: Optional cached events for optimization
 
         Returns:
@@ -527,10 +527,10 @@ class CelcatScraperAsync:
         Raises:
             CelcatCannotConnectError: On connection issues
             CelcatInvalidAuthError: On authentication failure
-            ValueError: If start datetime is after end datetime
+            ValueError: If start date is after end date
         """
         if start >= end:
-            raise ValueError("Start datetime must be before end datetime")
+            raise ValueError("Start date must be before end date")
 
         if not self.logged_in:
             await self.login()
