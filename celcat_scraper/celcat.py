@@ -550,6 +550,18 @@ class CelcatScraperAsync:
         previous_events = previous_events.copy()
         total_requests = 0
 
+        start_datetime = datetime.combine(start, datetime.min.time())
+        end_datetime = datetime.combine(end, datetime.max.time())
+
+        out_of_range_events = [event for event in previous_events
+                                if event['end'] < start_datetime or event['start'] > end_datetime]
+
+        if out_of_range_events:
+            in_range_events = [event for event in previous_events
+                                if event['end'] >= start_datetime and event['start'] <= end_datetime]
+        else:
+            in_range_events = previous_events
+
         for raw_event in calendar_raw_data:
             event_start = datetime.fromisoformat(raw_event['start'])
             
@@ -567,7 +579,7 @@ class CelcatScraperAsync:
                     event_end == prev_event['end'].replace(tzinfo=None) and
                     prev_event['rooms'] and prev_event['rooms'][0].lower() in html.unescape(raw_event['description']).lower()):
                     matching_event = prev_event
-                    previous_events.remove(prev_event)
+                    in_range_events.remove(prev_event)
                     break
 
             if matching_event:
@@ -578,6 +590,8 @@ class CelcatScraperAsync:
                 final_events.append(processed_event)
                 total_requests += 1
                 _LOGGER.debug('Event data requested')
+
+        final_events.extend(out_of_range_events)
 
         _LOGGER.info(f'Finished processing events with {total_requests} requests')
         return sorted(final_events, key=lambda x: x['start'])
