@@ -454,7 +454,7 @@ class CelcatScraperAsync:
         tasks = [process_single_event(event) for event in events]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        _LOGGER.info(f'Finished processing new events with {len(calendar_raw_data)} requests')
+        _LOGGER.info(f'Finished processing new events with {len(events)} requests')
         return [r for r in results if r is not None and not isinstance(r, Exception)]
 
     @staticmethod
