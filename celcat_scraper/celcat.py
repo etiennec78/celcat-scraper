@@ -346,8 +346,8 @@ class CelcatScraperAsync:
         if not self.logged_in:
             await self.login()
 
-        if start >= end:
-            raise CelcatInvalidAuthError('Start time cannot be more recent than end time')
+        if start > end:
+            raise ValueError("Start time cannot be more recent than end time")
 
         calendar_data = {
             'start': start.strftime('%Y-%m-%d'),
@@ -529,8 +529,8 @@ class CelcatScraperAsync:
             CelcatInvalidAuthError: On authentication failure
             ValueError: If start date is after end date
         """
-        if start >= end:
-            raise ValueError("Start date must be before end date")
+        if start > end:
+            raise ValueError("Start time cannot be more recent than end time")
 
         if not self.logged_in:
             await self.login()
