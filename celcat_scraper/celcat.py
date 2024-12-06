@@ -53,8 +53,6 @@ class EventData(TypedDict):
     sites: List[str]
     faculty: str
     notes: List[str]
-    status: str
-    mark: Any
 
 @dataclass
 class CelcatConfig:
@@ -424,8 +422,6 @@ class CelcatScraperAsync:
                 'sites': cleaned_sites,
                 'faculty': str(event.get('faculty', '')),
                 'notes': [],
-                'status': str(event.get('registerStatus', None)),
-                'mark': event.get('studentMark', None),
             }
 
             event_data = await self._get_side_bar_event_raw_data(event['id'])
