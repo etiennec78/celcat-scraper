@@ -413,15 +413,15 @@ class CelcatScraperAsync:
                 'start': event_start,
                 'end': event_end,
                 'all_day': bool(event.get('allDay', False)),
-                'category': str(event.get('eventCategory', '')),
+                'category': str(event.get('eventCategory', '') or ''),
                 'course': '',
                 'rooms': [],
                 'professors': [],
-                'modules': list(event.get('modules', [])),
-                'department': str(event.get('department', '')),
+                'modules': list(event.get('modules', []) or []),
+                'department': str(event.get('department', '') or ''),
                 'sites': cleaned_sites,
-                'faculty': str(event.get('faculty', '')),
-                'notes': [],
+                'faculty': str(event.get('faculty', '') or ''),
+                'notes': []
             }
 
             event_data = await self._get_side_bar_event_raw_data(event['id'])
