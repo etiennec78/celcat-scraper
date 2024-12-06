@@ -20,7 +20,7 @@ from celcat_scraper import CelcatConfig, CelcatScraperAsync
 async def main():
     # Configure the scraper
     config = CelcatConfig(
-        url="https://celcat.university.com",
+        url="https://university.com/calendar",
         username="your_username",
         password="your_password",
         include_holidays=True

@@ -221,7 +221,7 @@ class CelcatScraperAsync:
         
         try:
             self.session = ClientSession()
-            url_login_page = f"{self.config.url}/calendar/LdapLogin"
+            url_login_page = f"{self.config.url}/LdapLogin"
 
             async with self.session.get(url_login_page) as response:
                 page_content = await self._validate_response(response)
@@ -238,7 +238,7 @@ class CelcatScraperAsync:
                 }
 
                 async with self.session.post(
-                    f"{self.config.url}/calendar/LdapLogin/Logon",
+                    f"{self.config.url}/LdapLogin/Logon",
                     data=login_data,
                     headers={"Content-Type": "application/x-www-form-urlencoded"}
                 ) as response:
@@ -355,7 +355,7 @@ class CelcatScraperAsync:
             'federationIds[]': self.federation_ids
         }
 
-        url_calendar_data = self.config.url + '/calendar/Home/GetCalendarData'
+        url_calendar_data = self.config.url + '/Home/GetCalendarData'
         try:
             async with self.session.post(url_calendar_data, data=calendar_data) as calendar_response:
 
@@ -383,7 +383,7 @@ class CelcatScraperAsync:
             'eventid': event_id
         }
 
-        url_sidebar_data = self.config.url + '/calendar/Home/GetSideBarEvent'
+        url_sidebar_data = self.config.url + '/Home/GetSideBarEvent'
         try:
             async with self.session.post(url_sidebar_data, data=sidebar_data) as sidebar_response:
                 if sidebar_response.status == 200:
