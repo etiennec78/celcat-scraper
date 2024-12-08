@@ -573,8 +573,8 @@ class CelcatScraperAsync:
             for prev_event in in_range_events:
                 if (raw_event['id'] == prev_event['id'] and (
                     (raw_event['allDay'] == prev_event['all_day'] == True) or
-                    (event_start == prev_event['start'].replace(tzinfo=None) and
-                     event_end == prev_event['end'].replace(tzinfo=None)
+                    (event_start == prev_event['start'] and
+                     event_end == prev_event['end']
                     ) and (
                         not prev_event['rooms'] or
                         prev_event['rooms'][0].lower() in html.unescape(raw_event['description']).lower()
