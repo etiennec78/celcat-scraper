@@ -550,14 +550,15 @@ class CelcatScraperAsync:
         start_datetime = datetime.combine(start, datetime.min.time())
         end_datetime = datetime.combine(end, datetime.max.time())
 
-        out_of_range_events = [event for event in previous_events
-                                if event['end'] < start_datetime or event['start'] > end_datetime]
-
-        if out_of_range_events:
-            in_range_events = [event for event in previous_events
-                                if event['end'] >= start_datetime and event['start'] <= end_datetime]
-        else:
-            in_range_events = previous_events
+        out_of_range_events = []
+        in_range_events = []
+        for event in previous_events:
+            if event['all_day'] and not self.config.include_holidays:
+                continue
+            elif event['end'] < start_datetime or event['start'] > end_datetime:
+                out_of_range_events.append(event)
+            else:
+                in_range_events.append(event)
 
         for raw_event in calendar_raw_data:
             event_start = datetime.fromisoformat(raw_event['start'])
