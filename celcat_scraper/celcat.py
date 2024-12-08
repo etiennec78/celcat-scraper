@@ -57,7 +57,7 @@ class EventData(TypedDict):
 @dataclass
 class CelcatConfig:
     """Configuration for Celcat scraper.
-    
+
     Attributes:
         url: Base URL for Celcat service
         username: Login username
@@ -114,7 +114,7 @@ def retry_on_network_error(retries: int = 3, delay: float = 1.0):
 
 class CelcatScraperAsync:
     """Asynchronous scraper for interacting with Celcat calendar.
-    
+
     The scraper handles authentication, rate limiting, and data retrieval
     from Celcat calendar systems. It implements connection pooling, automatic
     retries, and adaptive rate limiting for optimal performance.
@@ -129,7 +129,7 @@ class CelcatScraperAsync:
 
     def __init__(self, config: CelcatConfig) -> None:
         """Initialize the Celcat scraper.
-        
+
         Args:
             config: Configuration for Celcat scraper including URL and credentials
         """
@@ -138,7 +138,7 @@ class CelcatScraperAsync:
         self.federation_ids: Optional[str] = None
         self.session: Optional[ClientSession] = None
         self.logged_in: bool = False
-        
+
         self._rate_limiter = RateLimiter(1/config.rate_limit)
         self._timeout = ClientTimeout(total=30)
         self._semaphore = asyncio.Semaphore(CelcatConstants.CONCURRENT_REQUESTS)
@@ -218,7 +218,7 @@ class CelcatScraperAsync:
             CelcatInvalidAuthError: If credentials are invalid
         """
         _LOGGER.debug("Initiating authentication with Celcat service")
-        
+
         try:
             self.session = ClientSession()
             url_login_page = f"{self.config.url}/LdapLogin"
@@ -227,7 +227,7 @@ class CelcatScraperAsync:
                 page_content = await self._validate_response(response)
                 soup = BeautifulSoup(page_content, "html.parser")
                 token_element = soup.find("input", {"name": "__RequestVerificationToken"})
-                
+
                 if not token_element or "value" not in token_element.attrs:
                     raise CelcatCannotConnectError("Could not retrieve CSRF token")
 
@@ -255,40 +255,40 @@ class CelcatScraperAsync:
         """Process login response and extract federation IDs."""
         soup = BeautifulSoup(page_content, 'html.parser')
         login_button = soup.find('a', class_='logInOrOut')
-        
+
         if not login_button or not login_button.span:
             raise CelcatInvalidAuthError("Could not determine login state")
-            
+
         login_button_state = login_button.span.text
 
         if login_button_state == 'Log Out':
             federation_ids = next(
-                (param.split('=')[1] for param in str(response_url).split('&') 
-                 if param.startswith('FederationIds=')), 
+                (param.split('=')[1] for param in str(response_url).split('&')
+                 if param.startswith('FederationIds=')),
                 None
             )
 
             if federation_ids is None:
                 raise CelcatCannotConnectError('Federation ids could not be retrieved')
-                
+
             self.federation_ids = federation_ids
             self.logged_in = True
             _LOGGER.debug("Successfully logged in to Celcat")
             return True
-        
+
         raise CelcatInvalidAuthError("Login failed - invalid credentials")
 
     @retry_on_network_error()
     async def _fetch_with_retry(self, method: str, url: str, **kwargs) -> Any:
         """Make HTTP requests with retry logic."""
         await self._rate_limiter.acquire()
-        
+
         async with self._semaphore:
             for attempt in range(CelcatConstants.MAX_RETRIES):
                 try:
                     kwargs.setdefault('timeout', self._timeout)
                     kwargs.setdefault('compress', True)
-                    
+
                     async with self._session_context() as session:
                         async with session.request(method, url, **kwargs) as response:
                             if response.status == 200:
@@ -297,12 +297,12 @@ class CelcatScraperAsync:
                                     data = await response.json()
                                 else:
                                     data = await response.text()
-                                
+
                                 self._rate_limiter.reset_backoff()
                                 return data
-                            
+
                             await self._handle_error_response(response)
-                            
+
                 except aiohttp.ClientError as exc:
                     self._rate_limiter.increase_backoff()
                     if attempt == CelcatConstants.MAX_RETRIES - 1:
@@ -321,7 +321,7 @@ class CelcatScraperAsync:
             if "application/json" not in response.headers.get("Content-Type", ""):
                 raise CelcatCannotConnectError("Expected JSON response but got different content type")
             return await response.json()
-        
+
         return await response.text()
 
     async def _handle_error_response(self, response: ClientResponse) -> None:
@@ -460,7 +460,7 @@ class CelcatScraperAsync:
     @staticmethod
     def serialize_events(events: List[EventData], file_path: str) -> None:
         """Serialize events to JSON file.
-        
+
         Args:
             events: List of EventData to serialize
             file_path: Path where to save the JSON file
@@ -478,10 +478,10 @@ class CelcatScraperAsync:
     @staticmethod
     def deserialize_events(file_path: str) -> List[EventData]:
         """Deserialize events from JSON file.
-        
+
         Args:
             file_path: Path to the JSON file
-            
+
         Returns:
             List of EventData objects
         """
@@ -493,11 +493,11 @@ class CelcatScraperAsync:
 
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            
+
         for event in data:
             event['start'] = datetime.fromisoformat(event['start'])
             event['end'] = datetime.fromisoformat(event['end'])
-            
+
         return data
 
     async def get_calendar_events(
@@ -534,15 +534,15 @@ class CelcatScraperAsync:
             await self.login()
 
         _LOGGER.info("Retrieving calendar events for period %s to %s", start, end)
-        
+
         calendar_raw_data = await self._get_calendar_raw_data(start, end)
         calendar_raw_data.sort(key=lambda x: x['start'])
-        
+
         if not previous_events:
             return await self._process_event_batch(calendar_raw_data)
-            
+
         _LOGGER.info('Comparing remote and local calendar to optimize requests')
-        
+
         final_events = []
         previous_events = previous_events.copy()
         total_requests = 0
@@ -561,7 +561,7 @@ class CelcatScraperAsync:
 
         for raw_event in calendar_raw_data:
             event_start = datetime.fromisoformat(raw_event['start'])
-            
+
             if raw_event['allDay']:
                 if not self.config.include_holidays:
                     continue
