@@ -312,7 +312,7 @@ class CelcatScraperAsync:
     async def _validate_response(self, response: ClientResponse, expected_type: str = None) -> Any:
         """Validate server response and return appropriate data type."""
         if response.status != 200:
-            error_text = await response.text()
+            error_text = await response.text(encoding='latin1')
             raise CelcatCannotConnectError(
                 f"Server returned status {response.status}: {error_text[:200]}"
             )
