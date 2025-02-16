@@ -572,14 +572,17 @@ class CelcatScraperAsync:
 
             matching_event = None
             for prev_event in in_range_events:
-                if (raw_event['id'] == prev_event['id'] and (
-                    (raw_event['allDay'] == prev_event['all_day'] == True) or
-                    (event_start == prev_event['start'] and
-                     event_end == prev_event['end']
-                    ) and (
-                        not prev_event['rooms'] or
-                        prev_event['rooms'][0].lower() in html.unescape(raw_event['description']).lower()
-                    ))):
+                if raw_event['id'] == prev_event['id'] and (
+                    (raw_event['allDay'] and prev_event['all_day'])
+                    or (event_start == prev_event['start'] and event_end == prev_event['end'])
+                ) and (
+                    raw_event['eventCategory'] == prev_event['category']
+                ) and (
+                    raw_event['modules'] or [] == prev_event['modules']
+                ) and (
+                    prev_event['all_day']
+                    or (prev_event['rooms'] and prev_event['rooms'][0].lower() in html.unescape(raw_event['description']).lower())
+                ):
                     matching_event = prev_event
                     in_range_events.remove(prev_event)
                     break
