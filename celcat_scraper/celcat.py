@@ -64,12 +64,14 @@ class CelcatConfig:
         password: Login password
         include_holidays: Whether to include holidays in the calendar
         rate_limit: Minimum seconds between requests
+        session: Optional aiohttp ClientSession to reuse
     """
     url: str
     username: str
     password: str
     include_holidays: bool = True
     rate_limit: float = 0.5
+    session: Optional[ClientSession] = None
 
 class RateLimiter:
     """Rate limiter for API requests with adaptive backoff."""
@@ -136,7 +138,8 @@ class CelcatScraperAsync:
         self._validate_config(config)
         self.config = config
         self.federation_ids: Optional[str] = None
-        self.session: Optional[ClientSession] = None
+        self.session: Optional[ClientSession] = config.session
+        self._external_session = bool(config.session)
         self.logged_in: bool = False
 
         self._rate_limiter = RateLimiter(1/config.rate_limit)
@@ -191,12 +194,12 @@ class CelcatScraperAsync:
         try:
             yield self.session
         finally:
-            if not self.session.closed:
+            if not self._external_session and not self.session.closed:
                 await self._cleanup_session()
 
     async def _cleanup_session(self) -> None:
         """Clean up and close the aiohttp session."""
-        if self.session:
+        if self.session and not self._external_session:
             with suppress(Exception):
                 await self.session.close()
             self.session = None
