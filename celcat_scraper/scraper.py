@@ -133,17 +133,17 @@ class CelcatScraperAsync:
             CelcatInvalidAuthError: If credentials are invalid
         """
         try:
-            self.session = ClientSession()
-            success, federation_ids = await authenticate(
-                self.session,
-                self.config.url,
-                self.config.username,
-                self.config.password
-            )
+            async with self._session_context() as session:
+                success, federation_ids = await authenticate(
+                    session,
+                    self.config.url,
+                    self.config.username,
+                    self.config.password
+                )
 
-            self.federation_ids = federation_ids
-            self.logged_in = True
-            return True
+                self.federation_ids = federation_ids
+                self.logged_in = True
+                return True
 
         except Exception as exc:
             await self._cleanup_session()
