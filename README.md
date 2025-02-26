@@ -58,6 +58,7 @@ if __name__ == "__main__":
 * Async/await support for better performance
 * Rate limiting with adaptive backoff
 * Optional caching support
+* Optional reusable aiohttp session
 * Automatic session management
 * Batch processing of events
 * Error handling and retries
