@@ -24,4 +24,4 @@ class EventData(TypedDict):
     department: str
     sites: List[str]
     faculty: str
-    notes: List[str]
+    notes: str

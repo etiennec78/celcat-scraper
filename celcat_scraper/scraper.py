@@ -192,7 +192,7 @@ class CelcatScraperAsync:
                 'department': str(event.get('department', '') or ''),
                 'sites': cleaned_sites,
                 'faculty': str(event.get('faculty', '') or ''),
-                'notes': []
+                'notes': ''
             }
 
             event_data = await get_side_bar_event_raw_data(self.session, self.config.url, event['id'])
@@ -205,7 +205,7 @@ class CelcatScraperAsync:
                 elif element['entityType'] == 102:
                     processed_event['rooms'].append(element['content'].title())
                 elif element['isNotes'] and element['content'] is not None:
-                    processed_event['notes'].append(element['content'])
+                    processed_event['notes'] = element['content']
 
             return processed_event
         except Exception as exc:
