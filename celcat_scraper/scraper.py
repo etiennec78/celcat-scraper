@@ -119,8 +119,24 @@ class CelcatScraperAsync:
 
     async def close(self) -> None:
         """Close scraper and clean up resources."""
-        _LOGGER.info('Closing Celcat scraper session')
-        await self._cleanup_session()
+        if not self.session:
+            return
+
+        if self._external_session and self.logged_in:
+            try:
+                logout_url = self.config.url + "/Login/Logout"
+                _LOGGER.info(f'Sending logout request to {logout_url}')
+                async with self.session.get(logout_url) as response:
+                    if response.status == 200:
+                        _LOGGER.info('Successfully logged out from Celcat')
+                    else:
+                        _LOGGER.warning(f'Logout returned status {response.status}')
+                self.logged_in = False
+            except Exception as e:
+                _LOGGER.error(f'Failed to properly logout from Celcat: {e}')
+        else:
+            _LOGGER.info('Closing Celcat scraper session')
+            await self._cleanup_session()
 
     async def login(self) -> bool:
         """Authenticate to Celcat.
