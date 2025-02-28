@@ -58,13 +58,13 @@ class CelcatScraperAsync:
         self._timeout = ClientTimeout(total=30)
         self._semaphore = asyncio.Semaphore(CelcatConstants.CONCURRENT_REQUESTS)
         self._conn_kwargs = {
-            'limit': CelcatConstants.CONNECTION_POOL_SIZE,
-            'enable_cleanup_closed': True
+            "limit": CelcatConstants.CONNECTION_POOL_SIZE,
+            "enable_cleanup_closed": True
         }
         self._headers = {
-            'Accept-Encoding': ', '.join(CelcatConstants.COMPRESSION_TYPES),
-            'Connection': 'keep-alive',
-            'Keep-Alive': str(CelcatConstants.CONNECTION_KEEP_ALIVE)
+            "Accept-Encoding": ", ".join(CelcatConstants.COMPRESSION_TYPES),
+            "Connection": "keep-alive",
+            "Keep-Alive": str(CelcatConstants.CONNECTION_KEEP_ALIVE)
         }
 
     async def __aenter__(self) -> 'CelcatScraperAsync':
@@ -125,17 +125,17 @@ class CelcatScraperAsync:
         if self._external_session and self.logged_in:
             try:
                 logout_url = self.config.url + "/Login/Logout"
-                _LOGGER.info(f'Sending logout request to {logout_url}')
+                _LOGGER.info(f"Sending logout request to {logout_url}")
                 async with self.session.get(logout_url) as response:
                     if response.status == 200:
-                        _LOGGER.info('Successfully logged out from Celcat')
+                        _LOGGER.info("Successfully logged out from Celcat")
                     else:
-                        _LOGGER.warning(f'Logout returned status {response.status}')
+                        _LOGGER.warning(f"Logout returned status {response.status}")
                 self.logged_in = False
             except Exception as e:
-                _LOGGER.error(f'Failed to properly logout from Celcat: {e}')
+                _LOGGER.error(f"Failed to properly logout from Celcat: {e}")
         else:
-            _LOGGER.info('Closing Celcat scraper session')
+            _LOGGER.info("Closing Celcat scraper session")
             await self._cleanup_session()
 
     async def login(self) -> bool:
@@ -170,42 +170,42 @@ class CelcatScraperAsync:
     async def _process_event(self, event: dict) -> EventData:
         """Convert raw event data into EventData object."""
         try:
-            event_start = datetime.fromisoformat(event['start'])
+            event_start = datetime.fromisoformat(event["start"])
             event_end = (
                 event_start.replace(hour=23, minute=59, second=59)
-                if event['allDay']
-                else datetime.fromisoformat(event['end'])
+                if event["allDay"]
+                else datetime.fromisoformat(event["end"])
             )
 
-            cleaned_sites = list({site.title() for site in (event.get('sites') or []) if site})
+            cleaned_sites = list({site.title() for site in (event.get("sites") or []) if site})
 
             processed_event: EventData = {
-                'id': str(event['id']),
-                'start': event_start,
-                'end': event_end,
-                'all_day': bool(event.get('allDay', False)),
-                'category': str(event.get('eventCategory', '') or ''),
-                'course': '',
-                'rooms': [],
-                'professors': [],
-                'modules': list(event.get('modules', []) or []),
-                'department': str(event.get('department', '') or ''),
-                'sites': cleaned_sites,
-                'faculty': str(event.get('faculty', '') or ''),
-                'notes': ''
+                "id": str(event["id"]),
+                "start": event_start,
+                "end": event_end,
+                "all_day": bool(event.get("allDay", False)),
+                "category": str(event.get("eventCategory", "") or ""),
+                "course": "",
+                "rooms": [],
+                "professors": [],
+                "modules": list(event.get("modules", []) or []),
+                "department": str(event.get("department", "") or ""),
+                "sites": cleaned_sites,
+                "faculty": str(event.get("faculty", "") or ""),
+                "notes": ""
             }
 
-            event_data = await get_side_bar_event_raw_data(self.session, self.config.url, event['id'])
+            event_data = await get_side_bar_event_raw_data(self.session, self.config.url, event["id"])
 
-            for element in event_data['elements']:
-                if element['entityType'] == 100 and processed_event['course'] == '':
-                    processed_event['course'] = element['content'].replace(f' [{element['federationId']}]', '').replace(f' {event['eventCategory']}', '').title()
-                elif element['entityType'] == 101:
-                    processed_event['professors'].append(element['content'].title())
-                elif element['entityType'] == 102:
-                    processed_event['rooms'].append(element['content'].title())
-                elif element['isNotes'] and element['content'] is not None:
-                    processed_event['notes'] = element['content']
+            for element in event_data["elements"]:
+                if element["entityType"] == 100 and processed_event["course"] == "":
+                    processed_event["course"] = element["content"].replace(f" [{element['federationId']}]", "").replace(f" {event['eventCategory']}", "").title()
+                elif element["entityType"] == 101:
+                    processed_event["professors"].append(element["content"].title())
+                elif element["entityType"] == 102:
+                    processed_event["rooms"].append(element["content"].title())
+                elif element["isNotes"] and element["content"] is not None:
+                    processed_event["notes"] = element["content"]
 
             return processed_event
         except Exception as exc:
@@ -216,7 +216,7 @@ class CelcatScraperAsync:
         """Process multiple events concurrently."""
         async def process_single_event(event: dict) -> Optional[EventData]:
             try:
-                if not event['allDay'] or self.config.include_holidays:
+                if not event["allDay"] or self.config.include_holidays:
                     return await self._process_event(event)
             except Exception as exc:
                 _LOGGER.error(f"Failed to process event {event.get('id')}: {exc}")
@@ -225,7 +225,7 @@ class CelcatScraperAsync:
         tasks = [process_single_event(event) for event in events]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        _LOGGER.info(f'Finished processing new events with {len(events)} requests')
+        _LOGGER.info(f"Finished processing new events with {len(events)} requests")
         return [r for r in results if r is not None and not isinstance(r, Exception)]
 
     @staticmethod
@@ -261,8 +261,8 @@ class CelcatScraperAsync:
             data = json.load(f)
 
         for event in data:
-            event['start'] = datetime.fromisoformat(event['start'])
-            event['end'] = datetime.fromisoformat(event['end'])
+            event["start"] = datetime.fromisoformat(event["start"])
+            event["end"] = datetime.fromisoformat(event["end"])
 
         return data
 
@@ -308,12 +308,12 @@ class CelcatScraperAsync:
             start,
             end
         )
-        calendar_raw_data.sort(key=lambda x: x['start'])
+        calendar_raw_data.sort(key=lambda x: x["start"])
 
         if not previous_events:
             return await self._process_event_batch(calendar_raw_data)
 
-        _LOGGER.info('Comparing remote and local calendar to optimize requests')
+        _LOGGER.info("Comparing remote and local calendar to optimize requests")
 
         final_events = []
         previous_events = previous_events.copy()
@@ -325,35 +325,35 @@ class CelcatScraperAsync:
         out_of_range_events = []
         in_range_events = []
         for event in previous_events:
-            if event['all_day'] and not self.config.include_holidays:
+            if event["all_day"] and not self.config.include_holidays:
                 continue
-            elif event['end'] < start_datetime or event['start'] > end_datetime:
+            elif event["end"] < start_datetime or event["start"] > end_datetime:
                 out_of_range_events.append(event)
             else:
                 in_range_events.append(event)
 
         for raw_event in calendar_raw_data:
-            event_start = datetime.fromisoformat(raw_event['start'])
+            event_start = datetime.fromisoformat(raw_event["start"])
 
-            if raw_event['allDay']:
+            if raw_event["allDay"]:
                 if not self.config.include_holidays:
                     continue
                 event_end = event_start.replace(hour=23, minute=59, second=59)
             else:
-                event_end = datetime.fromisoformat(raw_event['end'])
+                event_end = datetime.fromisoformat(raw_event["end"])
 
             matching_event = None
             for prev_event in in_range_events:
-                if raw_event['id'] == prev_event['id'] and (
-                    (raw_event['allDay'] and prev_event['all_day'])
-                    or (event_start == prev_event['start'] and event_end == prev_event['end'])
+                if raw_event["id"] == prev_event["id"] and (
+                    (raw_event["allDay"] and prev_event["all_day"])
+                    or (event_start == prev_event["start"] and event_end == prev_event["end"])
                 ) and (
-                    raw_event['eventCategory'] == prev_event['category']
+                    raw_event["eventCategory"] == prev_event["category"]
                 ) and (
-                    raw_event['modules'] or [] == prev_event['modules']
+                    raw_event["modules"] or [] == prev_event["modules"]
                 ) and (
-                    prev_event['all_day']
-                    or (prev_event['rooms'] and prev_event['rooms'][0].lower() in html.unescape(raw_event['description']).lower())
+                    prev_event["all_day"]
+                    or (prev_event["rooms"] and prev_event["rooms"][0].lower() in html.unescape(raw_event["description"]).lower())
                 ):
                     matching_event = prev_event
                     in_range_events.remove(prev_event)
@@ -361,14 +361,14 @@ class CelcatScraperAsync:
 
             if matching_event:
                 final_events.append(matching_event)
-                _LOGGER.debug('Event data recycled')
+                _LOGGER.debug("Event data recycled")
             else:
                 processed_event = await self._process_event(raw_event)
                 final_events.append(processed_event)
                 total_requests += 1
-                _LOGGER.debug('Event data requested')
+                _LOGGER.debug("Event data requested")
 
         final_events.extend(out_of_range_events)
 
-        _LOGGER.info(f'Finished processing events with {total_requests} requests')
-        return sorted(final_events, key=lambda x: x['start'])
+        _LOGGER.info(f"Finished processing events with {total_requests} requests")
+        return sorted(final_events, key=lambda x: x["start"])

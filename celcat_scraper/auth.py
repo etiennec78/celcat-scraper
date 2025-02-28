@@ -42,7 +42,7 @@ async def authenticate(
 
         async with session.get(url_login_page) as response:
             if response.status != 200:
-                error_text = await response.text(encoding='latin1')
+                error_text = await response.text(encoding="latin1")
                 raise CelcatCannotConnectError(
                     f"Server returned status {response.status}: {error_text[:200]}"
                 )
@@ -66,7 +66,7 @@ async def authenticate(
                 headers={"Content-Type": "application/x-www-form-urlencoded"}
             ) as response:
                 if response.status != 200:
-                    error_text = await response.text(encoding='latin1')
+                    error_text = await response.text(encoding="latin1")
                     raise CelcatCannotConnectError(
                         f"Server returned status {response.status}: {error_text[:200]}"
                     )
@@ -86,23 +86,23 @@ def _process_login_response(response_url, page_content: str) -> Tuple[bool, Opti
     Returns:
         Tuple of (success, federation_ids)
     """
-    soup = BeautifulSoup(page_content, 'html.parser')
-    login_button = soup.find('a', class_='logInOrOut')
+    soup = BeautifulSoup(page_content, "html.parser")
+    login_button = soup.find("a", class_="logInOrOut")
 
     if not login_button or not login_button.span:
         raise CelcatInvalidAuthError("Could not determine login state")
 
     login_button_state = login_button.span.text
 
-    if login_button_state == 'Log Out':
+    if login_button_state == "Log Out":
         federation_ids = next(
-            (param.split('=')[1] for param in str(response_url).split('&')
-             if param.startswith('FederationIds=')),
+            (param.split("=")[1] for param in str(response_url).split("&")
+             if param.startswith("FederationIds=")),
             None
         )
 
         if federation_ids is None:
-            raise CelcatCannotConnectError('Federation ids could not be retrieved')
+            raise CelcatCannotConnectError("Federation ids could not be retrieved")
 
         _LOGGER.debug("Successfully logged in to Celcat")
         return True, federation_ids
