@@ -6,15 +6,15 @@ build-backend = "hatchling.build"
 name = "celcat_scraper"
 version = "1.0.0"
 dependencies = [
-  "aiohttp",
-  "beautifulsoup4",
+  "aiohttp>=3.8.0",
+  "beautifulsoup4>=4.4.0",
 ]
 authors = [
   { name="Etienne Coriou", email="etienne.coriou@free.fr" },
 ]
 description = "Asynchronous Python scraper for Celcat Calendar"
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 classifiers = [
     "Framework :: AsyncIO",
     "Intended Audience :: Developers",
