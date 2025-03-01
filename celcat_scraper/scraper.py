@@ -171,18 +171,18 @@ class CelcatScraperAsync:
             cleaned_sites = list({site.title() for site in (event.get("sites") or []) if site})
 
             processed_event: EventData = {
-                "id": str(event["id"]),
+                "id": event["id"],
                 "start": event_start,
                 "end": event_end,
-                "all_day": bool(event.get("allDay", False)),
-                "category": str(event.get("eventCategory", "") or ""),
+                "all_day": event.get("allDay", False),
+                "category": event.get("eventCategory", ""),
                 "course": "",
                 "rooms": [],
                 "professors": [],
-                "modules": list(event.get("modules", []) or []),
-                "department": str(event.get("department", "") or ""),
+                "modules": event.get("modules", []),
+                "department": event.get("department", ""),
                 "sites": cleaned_sites,
-                "faculty": str(event.get("faculty", "") or ""),
+                "faculty": event.get("faculty", ""),
                 "notes": ""
             }
 
@@ -195,7 +195,7 @@ class CelcatScraperAsync:
                     processed_event["professors"].append(element["content"].title())
                 elif element["entityType"] == 102:
                     processed_event["rooms"].append(element["content"].title())
-                elif element["isNotes"] and element["content"] is not None:
+                elif element["isNotes"] and element.get("content"):
                     processed_event["notes"] = element["content"]
 
             return processed_event
