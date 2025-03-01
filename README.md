@@ -14,13 +14,13 @@ Basic example of retrieving calendar events:
 
 ```python
 import asyncio
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from celcat_scraper import CelcatConfig, CelcatScraperAsync
 
 async def main():
     # Configure the scraper
     config = CelcatConfig(
-        url="https://celcat.university.com",
+        url="https://university.com/calendar",
         username="your_username",
         password="your_password",
         include_holidays=True
@@ -29,7 +29,7 @@ async def main():
     # Create scraper instance and get events
     async with CelcatScraperAsync(config) as scraper:
 
-        start_date = datetime.now()
+        start_date = date.today()
         end_date = start_date + timedelta(days=30)
         
         # Recommended to store events locally and reduce the amout of requests
@@ -58,6 +58,7 @@ if __name__ == "__main__":
 * Async/await support for better performance
 * Rate limiting with adaptive backoff
 * Optional caching support
+* Optional reusable aiohttp session
 * Automatic session management
 * Batch processing of events
 * Error handling and retries

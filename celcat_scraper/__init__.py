@@ -1,17 +1,18 @@
-"""Asynchronous Python scraper for Celcat calendar API."""
+"""Celcat Calendar Scraper.
 
-from importlib.metadata import version, PackageNotFoundError
+This package provides a complete interface for interacting with Celcat Calendar.
+"""
+from .config import CelcatConfig, CelcatConstants
+from .exceptions import CelcatError, CelcatCannotConnectError, CelcatInvalidAuthError
+from .scraper import CelcatScraperAsync
+from .types import EventData
 
-try:
-    __version__ = version("celcat_scraper")
-except PackageNotFoundError:
-    __version__ = "unknown"
-
-from .celcat import CelcatConfig, CelcatScraperAsync
-from .exceptions import (
-    CelcatError,
-    CelcatCannotConnectError,
-    CelcatInvalidAuthError
-)
-
-__all__ = ["CelcatConfig", "CelcatScraperAsync", "CelcatError", "CelcatCannotConnectError", "CelcatInvalidAuthError"]
+__all__ = [
+    "CelcatConfig",
+    "CelcatConstants",
+    "CelcatScraperAsync",
+    "EventData",
+    "CelcatError",
+    "CelcatCannotConnectError",
+    "CelcatInvalidAuthError",
+]
