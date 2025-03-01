@@ -102,7 +102,14 @@ def _process_login_response(response_url, page_content: str) -> Tuple[bool, Opti
         )
 
         if federation_ids is None:
-            raise CelcatCannotConnectError("Federation ids could not be retrieved")
+            _LOGGER.debug("FederationIds could not be retrieved. Trying to extract from page")
+            extracted = soup.find("span", class_="small")
+            if extracted:
+                federation_ids = extracted.text.lstrip('-').strip()
+                if not federation_ids.isdigit():
+                    raise CelcatCannotConnectError(f"Federation ids could not be extracted from '{federation_ids}'")
+            else:
+                raise CelcatCannotConnectError("Federation ids class could not be found")
 
         _LOGGER.debug("Successfully logged in to Celcat")
         return True, federation_ids
