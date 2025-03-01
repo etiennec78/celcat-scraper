@@ -14,10 +14,10 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import aiohttp
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 
-from .api import get_calendar_raw_data, get_side_bar_event_raw_data, validate_response
+from .api import CelcatAPI
 from .auth import authenticate
 from .config import CelcatConfig, CelcatConstants
 from .exceptions import CelcatCannotConnectError, CelcatError
@@ -49,18 +49,12 @@ class CelcatScraperAsync:
         """
         self._validate_config(config)
         self.config = config
+        self.api = CelcatAPI()
         self.federation_ids: Optional[str] = None
         self.session: Optional[ClientSession] = config.session
         self._external_session = bool(config.session)
         self.logged_in: bool = False
 
-        self._rate_limiter = RateLimiter(1/config.rate_limit)
-        self._timeout = ClientTimeout(total=30)
-        self._semaphore = asyncio.Semaphore(CelcatConstants.CONCURRENT_REQUESTS)
-        self._conn_kwargs = {
-            "limit": CelcatConstants.CONNECTION_POOL_SIZE,
-            "enable_cleanup_closed": True
-        }
         self._headers = {
             "Accept-Encoding": ", ".join(CelcatConstants.COMPRESSION_TYPES),
             "Connection": "keep-alive",
@@ -195,7 +189,7 @@ class CelcatScraperAsync:
                 "notes": ""
             }
 
-            event_data = await get_side_bar_event_raw_data(self.session, self.config.url, event["id"])
+            event_data = await self.api.get_side_bar_event_raw_data(self.session, self.config.url, event["id"])
 
             for element in event_data["elements"]:
                 if element["entityType"] == 100 and processed_event["course"] == "":
@@ -301,7 +295,7 @@ class CelcatScraperAsync:
 
         _LOGGER.info("Retrieving calendar events for period %s to %s", start, end)
 
-        calendar_raw_data = await get_calendar_raw_data(
+        calendar_raw_data = await self.api.get_calendar_raw_data(
             self.session,
             self.config.url,
             self.federation_ids,

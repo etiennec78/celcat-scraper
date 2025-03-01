@@ -1,17 +1,11 @@
 """Utility functions and classes for Celcat scraper.
 
 This module provides helper functions and classes for handling
-rate limiting, retries, and other common operations.
+rate limiting.
 """
 
 import asyncio
 import time
-from functools import wraps
-from typing import Any, Callable
-
-from aiohttp import ClientConnectorError
-
-from .exceptions import CelcatCannotConnectError
 
 class RateLimiter:
     """Rate limiter for API requests with adaptive backoff."""
@@ -37,20 +31,3 @@ class RateLimiter:
         """Reset backoff factor on success."""
         self._backoff_factor = 1.0
 
-
-def retry_on_network_error(retries: int = 3, delay: float = 1.0):
-    """Retry failed network operations with exponential backoff."""
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(*args, **kwargs) -> Any:
-            last_exception = None
-            for attempt in range(retries):
-                try:
-                    return await func(*args, **kwargs)
-                except (ClientConnectorError, CelcatCannotConnectError) as exc:
-                    last_exception = exc
-                    if attempt < retries - 1:
-                        await asyncio.sleep(delay * (attempt + 1))
-            raise last_exception
-        return wrapper
-    return decorator
