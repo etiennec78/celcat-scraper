@@ -5,11 +5,10 @@ This module provides functions for interacting with Celcat calendar API endpoint
 
 import logging
 import asyncio
-from datetime import date, datetime
-from typing import Dict, Any, List, Optional
+from datetime import date
+from typing import Dict, Any, List
 
-import aiohttp
-from aiohttp import ClientConnectorError, ClientResponse, ClientSession
+from aiohttp import ClientResponse, ClientSession, ClientError
 
 from .config import CelcatConstants, CelcatConfig
 from .exceptions import CelcatCannotConnectError, CelcatInvalidAuthError

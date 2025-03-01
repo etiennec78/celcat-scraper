@@ -7,7 +7,7 @@ including login processes and session management.
 import logging
 from typing import Tuple, Optional
 
-from aiohttp import ClientSession, ClientConnectorError
+from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 
 from .exceptions import CelcatCannotConnectError, CelcatInvalidAuthError, CelcatError

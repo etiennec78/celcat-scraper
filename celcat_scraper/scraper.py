@@ -10,19 +10,16 @@ import logging
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime, date
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from urllib.parse import urlparse
 
-import aiohttp
-from aiohttp import ClientSession
-from bs4 import BeautifulSoup
+from aiohttp import ClientSession, TCPConnector
 
 from .api import CelcatAPI
 from .auth import authenticate
 from .config import CelcatConfig, CelcatConstants
 from .exceptions import CelcatCannotConnectError, CelcatError
 from .types import EventData
-from .utils import RateLimiter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -88,7 +85,7 @@ class CelcatScraperAsync:
         """Manage session lifecycle with proper connection settings."""
         if not self.session:
             self.session = ClientSession(
-                connector=aiohttp.TCPConnector(
+                connector=TCPConnector(
                     limit=CelcatConstants.CONNECTION_POOL_SIZE,
                     enable_cleanup_closed=True,
                     force_close=False,
