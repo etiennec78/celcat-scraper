@@ -175,14 +175,14 @@ class CelcatScraperAsync:
                 "start": event_start,
                 "end": event_end,
                 "all_day": event.get("allDay", False),
-                "category": event.get("eventCategory", ""),
+                "category": event.get("eventCategory", "") or "",
                 "course": "",
                 "rooms": [],
                 "professors": [],
-                "modules": event.get("modules", []),
-                "department": event.get("department", ""),
+                "modules": event.get("modules", []) or [],
+                "department": event.get("department", "") or "",
                 "sites": cleaned_sites,
-                "faculty": event.get("faculty", ""),
+                "faculty": event.get("faculty", "") or "",
                 "notes": ""
             }
 
