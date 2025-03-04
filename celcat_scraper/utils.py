@@ -9,8 +9,8 @@ import time
 
 class RateLimiter:
     """Rate limiter for API requests with adaptive backoff."""
-    def __init__(self, calls_per_second: float = 2.0):
-        self.delay = 1.0 / calls_per_second
+    def __init__(self, rate_limit: float = 2.0):
+        self.delay = rate_limit
         self.last_call = 0.0
         self._backoff_factor = 1.0
 

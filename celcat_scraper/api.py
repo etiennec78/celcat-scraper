@@ -21,7 +21,7 @@ class CelcatAPI:
 
     def __init__(self, config: CelcatConfig):
         """Initialize the Celcat API client."""
-        self.rate_limiter = RateLimiter(1/config.rate_limit)
+        self.rate_limiter = RateLimiter(config.rate_limit)
         self.semaphore = asyncio.Semaphore(CelcatConstants.CONCURRENT_REQUESTS)
         self.timeout = CelcatConstants.TIMEOUT
     
