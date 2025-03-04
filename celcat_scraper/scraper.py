@@ -46,7 +46,7 @@ class CelcatScraperAsync:
         """
         self._validate_config(config)
         self.config = config
-        self.api = CelcatAPI()
+        self.api = CelcatAPI(config)
         self.federation_ids: Optional[str] = None
         self.session: Optional[ClientSession] = config.session
         self._external_session = bool(config.session)

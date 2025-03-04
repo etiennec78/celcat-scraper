@@ -19,9 +19,9 @@ _LOGGER = logging.getLogger(__name__)
 class CelcatAPI:
     """Class for interacting with Celcat Calendar API."""
 
-    def __init__(self):
+    def __init__(self, config: CelcatConfig):
         """Initialize the Celcat API client."""
-        self.rate_limiter = RateLimiter(1/CelcatConfig.rate_limit)
+        self.rate_limiter = RateLimiter(1/config.rate_limit)
         self.semaphore = asyncio.Semaphore(CelcatConstants.CONCURRENT_REQUESTS)
         self.timeout = CelcatConstants.TIMEOUT
     
