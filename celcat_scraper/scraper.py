@@ -375,4 +375,4 @@ class CelcatScraperAsync:
         final_events.extend(out_of_range_events)
 
         _LOGGER.info(f"Finished processing events with {total_requests} requests")
-        return sorted(final_events, key=lambda x: x["start"])
+        return final_events
