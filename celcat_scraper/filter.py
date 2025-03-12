@@ -7,7 +7,7 @@ It offers various filtering options for each event attribute to facilitate class
 
 import logging
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Set
 
 from .config import CelcatFilterConfig
 
@@ -52,6 +52,9 @@ class CelcatFilter:
 
             if event.get("sites"):
                 await self._filter_sites(event)
+
+        if self.config.course_group_similar:
+            await self._group_similar_courses(events)
 
         if self.config.course_replacements:
             await self._replace_courses(events, self.config.course_replacements)
@@ -128,6 +131,50 @@ class CelcatFilter:
         if self.config.sites_title:
             for i in range(len(event["sites"])):
                 event["sites"][i] = event["sites"][i].title()
+
+    async def _get_courses_names(
+        self,
+        events: List[Dict[str, Any]],
+    ) -> List[str]:
+        """Extract unique course names from all events.
+
+        Args:
+            events: List of event dictionaries
+
+        Returns:
+            List of unique course names
+        """
+        courses: Set[str] = set()
+
+        for event in events:
+            if event.get("course") and event["course"] not in courses:
+                courses.add(event["course"])
+
+        return list(courses)
+
+    async def _group_similar_courses(self, events: List[Dict[str, Any]]) -> None:
+        """Group similar course names together.
+
+        Args:
+            events: List of event dictionaries
+        """
+        courses = await self._get_courses_names(events)
+        replacements = {}
+
+        for i in range(len(courses) - 1):
+            courses_corresponding = []
+            shortest_course = courses[i]
+            for j in range(len(courses)):
+                if shortest_course in courses[j]:
+                    courses_corresponding.append(courses[j])
+                elif courses[j] in shortest_course:
+                    courses_corresponding.append(shortest_course)
+                    shortest_course = courses[j]
+
+            for course in courses_corresponding:
+                replacements[course] = shortest_course
+
+        await self._replace_courses(events, replacements)
 
     async def _replace_courses(
         self, events: List[Dict[str, Any]], replacements: Dict[str, str]
