@@ -53,6 +53,9 @@ class CelcatFilter:
             if event.get("sites"):
                 await self._filter_sites(event)
 
+        if self.config.course_replacements:
+            await self._replace_courses(events, self.config.course_replacements)
+
     async def _filter_course(self, event: Dict[str, Any]) -> None:
         """Apply configured filters to a course name.
 
@@ -125,3 +128,16 @@ class CelcatFilter:
         if self.config.sites_title:
             for i in range(len(event["sites"])):
                 event["sites"][i] = event["sites"][i].title()
+
+    async def _replace_courses(
+        self, events: List[Dict[str, Any]], replacements: Dict[str, str]
+    ) -> None:
+        """Replace course names according to the provided mapping.
+
+        Args:
+            events: List of event dictionaries
+            replacements: Dictionary mapping old course names to new ones
+        """
+        for event in events:
+            if event.get("course") and event["course"] in replacements:
+                event["course"] = replacements[event["course"]]

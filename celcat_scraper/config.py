@@ -4,8 +4,8 @@ This module provides configuration classes used to customize
 the behavior of the Celcat scraper.
 """
 
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, Dict
 
 from aiohttp import ClientSession
 
@@ -30,6 +30,7 @@ class CelcatFilterConfig:
         course_strip_modules: Whether to remove module codes from course names
         course_strip_category: Whether to remove category prefixes from course names
         course_strip_punctuation: Whether to remove punctuation from course names
+        course_replacements: Dictionary of strings to replace in course names
         professors_title: Whether to convert professor names to title case
         rooms_title: Whether to convert room names to title case
         rooms_strip_after_number: Whether to remove text after room numbers
@@ -40,6 +41,7 @@ class CelcatFilterConfig:
     course_strip_modules: bool = True
     course_strip_category: bool = True
     course_strip_punctuation: bool = False
+    course_replacements: Optional[Dict[str, str]] = field(default_factory=dict)
     professors_title: bool = True
     rooms_title: bool = True
     rooms_strip_after_number: bool = False
