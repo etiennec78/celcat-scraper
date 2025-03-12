@@ -16,8 +16,9 @@ from urllib.parse import urlparse
 from aiohttp import ClientSession, TCPConnector
 
 from .api import CelcatAPI
+from .filter import CelcatFilter
 from .auth import authenticate
-from .config import CelcatConfig, CelcatConstants
+from .config import CelcatConfig, CelcatConstants, CelcatFilterConfig
 from .exceptions import CelcatCannotConnectError, CelcatError
 from .types import EventData
 
@@ -47,6 +48,7 @@ class CelcatScraperAsync:
         """
         self._validate_config(config)
         self.config = config
+        self.filter = CelcatFilter(config.custom_filter or CelcatFilterConfig)
         self.api = CelcatAPI(config)
         self.federation_ids: Optional[str] = None
         self.session: Optional[ClientSession] = config.session
@@ -168,10 +170,6 @@ class CelcatScraperAsync:
                 else datetime.fromisoformat(event["end"])
             )
 
-            cleaned_sites = list(
-                {site.title() for site in (event.get("sites") or []) if site}
-            )
-
             processed_event: EventData = {
                 "id": event["id"],
                 "start": event_start,
@@ -183,7 +181,7 @@ class CelcatScraperAsync:
                 "professors": [],
                 "modules": event.get("modules", []) or [],
                 "department": event.get("department", "") or "",
-                "sites": cleaned_sites,
+                "sites": event.get("sites", []) or [],
                 "faculty": event.get("faculty", "") or "",
                 "notes": "",
             }
@@ -194,16 +192,11 @@ class CelcatScraperAsync:
 
             for element in event_data["elements"]:
                 if element["entityType"] == 100 and processed_event["course"] == "":
-                    processed_event["course"] = (
-                        element["content"]
-                        .replace(f" [{element['federationId']}]", "")
-                        .replace(f" {event['eventCategory']}", "")
-                        .title()
-                    )
+                    processed_event["course"] = element["content"]
                 elif element["entityType"] == 101:
-                    processed_event["professors"].append(element["content"].title())
+                    processed_event["professors"].append(element["content"])
                 elif element["entityType"] == 102:
-                    processed_event["rooms"].append(element["content"].title())
+                    processed_event["rooms"].append(element["content"])
                 elif element["isNotes"] and element.get("content"):
                     processed_event["notes"] = element["content"]
 
@@ -227,7 +220,10 @@ class CelcatScraperAsync:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         _LOGGER.info(f"Finished processing new events with {len(events)} requests")
-        return [r for r in results if r is not None and not isinstance(r, Exception)]
+        events = [r for r in results if r is not None and not isinstance(r, Exception)]
+
+        await self.filter.filter_events(events)
+        return events
 
     @staticmethod
     def serialize_events(events: List[EventData], file_path: str) -> None:
@@ -373,6 +369,7 @@ class CelcatScraperAsync:
                 _LOGGER.debug("Event data requested")
 
         final_events.extend(out_of_range_events)
-
         _LOGGER.info(f"Finished processing events with {total_requests} requests")
+
+        await self.filter.filter_events(final_events)
         return final_events
