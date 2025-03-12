@@ -5,7 +5,7 @@ the behavior of the Celcat scraper.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from aiohttp import ClientSession
 
@@ -31,6 +31,8 @@ class CelcatFilterConfig:
         course_strip_category: Whether to remove category prefixes from course names
         course_strip_punctuation: Whether to remove punctuation from course names
         course_group_similar: Whether to group similar course names together
+        course_strip_redundant: Whether to remove redundant elements found across multiple events
+        course_remembered_strips: List of previously stripped strings to be reapplied in subsequent filter instances
         course_replacements: Dictionary of strings to replace in course names
         professors_title: Whether to convert professor names to title case
         rooms_title: Whether to convert room names to title case
@@ -43,6 +45,8 @@ class CelcatFilterConfig:
     course_strip_category: bool = True
     course_strip_punctuation: bool = False
     course_group_similar: bool = False
+    course_strip_redundant: bool = False
+    course_remembered_strips: Optional[List[str]] = field(default_factory=list)
     course_replacements: Optional[Dict[str, str]] = field(default_factory=dict)
     professors_title: bool = True
     rooms_title: bool = True
