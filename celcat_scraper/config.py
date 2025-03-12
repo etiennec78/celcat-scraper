@@ -29,6 +29,7 @@ class CelcatFilterConfig:
         course_title: Whether to convert course names to title case
         course_strip_modules: Whether to remove module codes from course names
         course_strip_category: Whether to remove category prefixes from course names
+        course_strip_punctuation: Whether to remove punctuation from course names
         professors_title: Whether to convert professor names to title case
         rooms_title: Whether to convert room names to title case
         sites_title: Whether to convert site names to title case
@@ -37,6 +38,7 @@ class CelcatFilterConfig:
     course_title: bool = True
     course_strip_modules: bool = True
     course_strip_category: bool = True
+    course_strip_punctuation: bool = False
     professors_title: bool = True
     rooms_title: bool = True
     sites_title: bool = True

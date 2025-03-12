@@ -75,6 +75,9 @@ class CelcatFilter:
                 flags=re.IGNORECASE,
             )
 
+        if self.config.course_strip_punctuation:
+            event["course"] = re.sub(r"[.,:;!?]", "", event["course"])
+
         if self.config.course_title:
             event["course"] = event["course"].title()
 
