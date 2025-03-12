@@ -97,6 +97,21 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing room information
         """
+        if self.config.rooms_strip_after_number:
+            for i in range(len(event["rooms"])):
+                letter = 0
+                while (
+                    letter < len(event["rooms"][i])
+                    and not event["rooms"][i][letter].isnumeric()
+                ):
+                    letter += 1
+                while (
+                    letter < len(event["rooms"][i])
+                    and not event["rooms"][i][letter].isalpha()
+                ):
+                    letter += 1
+                event["rooms"][i] = event["rooms"][i][:letter].rstrip()
+
         if self.config.rooms_title:
             for i in range(len(event["rooms"])):
                 event["rooms"][i] = event["rooms"][i].title()
