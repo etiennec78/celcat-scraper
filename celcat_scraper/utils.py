@@ -7,8 +7,10 @@ rate limiting.
 import asyncio
 import time
 
+
 class RateLimiter:
     """Rate limiter for API requests with adaptive backoff."""
+
     def __init__(self, rate_limit: float = 2.0):
         self.delay = rate_limit
         self.last_call = 0.0
@@ -19,7 +21,7 @@ class RateLimiter:
         now = time.monotonic()
         delay = self.delay * self._backoff_factor
         elapsed = now - self.last_call
-        if (elapsed < delay):
+        if elapsed < delay:
             await asyncio.sleep(delay - elapsed)
         self.last_call = time.monotonic()
 
@@ -30,4 +32,3 @@ class RateLimiter:
     def reset_backoff(self):
         """Reset backoff factor on success."""
         self._backoff_factor = 1.0
-

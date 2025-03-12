@@ -2,6 +2,7 @@
 
 This package provides a complete interface for interacting with Celcat Calendar.
 """
+
 from .config import CelcatConfig, CelcatConstants
 from .exceptions import CelcatError, CelcatCannotConnectError, CelcatInvalidAuthError
 from .scraper import CelcatScraperAsync

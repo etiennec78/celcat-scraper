@@ -9,14 +9,17 @@ from typing import Optional
 
 from aiohttp import ClientSession
 
+
 class CelcatConstants:
     """Constants for Celcat scraper configuration."""
+
     MAX_RETRIES = 3
     CONCURRENT_REQUESTS = 5
     TIMEOUT = 30
     COMPRESSION_TYPES = ["gzip", "deflate", "br"]
     CONNECTION_POOL_SIZE = 100
     CONNECTION_KEEP_ALIVE = 120
+
 
 @dataclass
 class CelcatConfig:
@@ -30,6 +33,7 @@ class CelcatConfig:
         rate_limit: Minimum seconds between requests
         session: Optional aiohttp ClientSession to reuse
     """
+
     url: str
     username: str
     password: str

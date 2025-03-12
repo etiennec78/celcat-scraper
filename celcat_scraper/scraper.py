@@ -23,6 +23,7 @@ from .types import EventData
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class CelcatScraperAsync:
     """Asynchronous scraper for interacting with Celcat calendar.
 
@@ -55,10 +56,10 @@ class CelcatScraperAsync:
         self._headers = {
             "Accept-Encoding": ", ".join(CelcatConstants.COMPRESSION_TYPES),
             "Connection": "keep-alive",
-            "Keep-Alive": str(CelcatConstants.CONNECTION_KEEP_ALIVE)
+            "Keep-Alive": str(CelcatConstants.CONNECTION_KEEP_ALIVE),
         }
 
-    async def __aenter__(self) -> 'CelcatScraperAsync':
+    async def __aenter__(self) -> "CelcatScraperAsync":
         """Async context manager entry with automatic login."""
         if not self.logged_in:
             await self.login()
@@ -78,7 +79,7 @@ class CelcatScraperAsync:
         if not parsed_url.scheme or not parsed_url.netloc:
             raise ValueError("Invalid URL format")
 
-        config.url = config.url.rstrip('/')
+        config.url = config.url.rstrip("/")
 
     @asynccontextmanager
     async def _session_context(self) -> ClientSession:
@@ -89,10 +90,10 @@ class CelcatScraperAsync:
                     limit=CelcatConstants.CONNECTION_POOL_SIZE,
                     enable_cleanup_closed=True,
                     force_close=False,
-                    keepalive_timeout=CelcatConstants.CONNECTION_KEEP_ALIVE
+                    keepalive_timeout=CelcatConstants.CONNECTION_KEEP_ALIVE,
                 ),
                 headers=self._headers,
-                timeout=self._timeout
+                timeout=self._timeout,
             )
         try:
             yield self.session
@@ -142,10 +143,7 @@ class CelcatScraperAsync:
         try:
             async with self._session_context() as session:
                 success, federation_ids = await authenticate(
-                    session,
-                    self.config.url,
-                    self.config.username,
-                    self.config.password
+                    session, self.config.url, self.config.username, self.config.password
                 )
 
                 self.federation_ids = federation_ids
@@ -156,7 +154,9 @@ class CelcatScraperAsync:
             await self._cleanup_session()
             if isinstance(exc, (CelcatError, ValueError)):
                 raise
-            raise CelcatCannotConnectError("Failed to connect to Celcat service") from exc
+            raise CelcatCannotConnectError(
+                "Failed to connect to Celcat service"
+            ) from exc
 
     async def _process_event(self, event: dict) -> EventData:
         """Convert raw event data into EventData object."""
@@ -168,7 +168,9 @@ class CelcatScraperAsync:
                 else datetime.fromisoformat(event["end"])
             )
 
-            cleaned_sites = list({site.title() for site in (event.get("sites") or []) if site})
+            cleaned_sites = list(
+                {site.title() for site in (event.get("sites") or []) if site}
+            )
 
             processed_event: EventData = {
                 "id": event["id"],
@@ -183,14 +185,21 @@ class CelcatScraperAsync:
                 "department": event.get("department", "") or "",
                 "sites": cleaned_sites,
                 "faculty": event.get("faculty", "") or "",
-                "notes": ""
+                "notes": "",
             }
 
-            event_data = await self.api.get_side_bar_event_raw_data(self.session, self.config.url, event["id"])
+            event_data = await self.api.get_side_bar_event_raw_data(
+                self.session, self.config.url, event["id"]
+            )
 
             for element in event_data["elements"]:
                 if element["entityType"] == 100 and processed_event["course"] == "":
-                    processed_event["course"] = element["content"].replace(f" [{element['federationId']}]", "").replace(f" {event['eventCategory']}", "").title()
+                    processed_event["course"] = (
+                        element["content"]
+                        .replace(f" [{element['federationId']}]", "")
+                        .replace(f" {event['eventCategory']}", "")
+                        .title()
+                    )
                 elif element["entityType"] == 101:
                     processed_event["professors"].append(element["content"].title())
                 elif element["entityType"] == 102:
@@ -205,6 +214,7 @@ class CelcatScraperAsync:
 
     async def _process_event_batch(self, events: List[dict]) -> List[EventData]:
         """Process multiple events concurrently."""
+
         async def process_single_event(event: dict) -> Optional[EventData]:
             try:
                 if not event["allDay"] or self.config.include_holidays:
@@ -227,12 +237,13 @@ class CelcatScraperAsync:
             events: List of EventData to serialize
             file_path: Path where to save the JSON file
         """
+
         def datetime_handler(obj):
             if isinstance(obj, datetime):
                 return obj.isoformat()
             raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(events, f, default=datetime_handler, ensure_ascii=False, indent=2)
 
     @staticmethod
@@ -248,7 +259,7 @@ class CelcatScraperAsync:
         if not Path(file_path).exists():
             return []
 
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         for event in data:
@@ -258,10 +269,7 @@ class CelcatScraperAsync:
         return data
 
     async def get_calendar_events(
-        self,
-        start: date,
-        end: date,
-        previous_events: Optional[List[EventData]] = None
+        self, start: date, end: date, previous_events: Optional[List[EventData]] = None
     ) -> List[EventData]:
         """Get calendar events for a specified time period.
 
@@ -293,11 +301,7 @@ class CelcatScraperAsync:
         _LOGGER.info("Retrieving calendar events for period %s to %s", start, end)
 
         calendar_raw_data = await self.api.get_calendar_raw_data(
-            self.session,
-            self.config.url,
-            self.federation_ids,
-            start,
-            end
+            self.session, self.config.url, self.federation_ids, start, end
         )
         calendar_raw_data.sort(key=lambda x: x["start"])
 
@@ -335,16 +339,25 @@ class CelcatScraperAsync:
 
             matching_event = None
             for prev_event in in_range_events:
-                if raw_event["id"] == prev_event["id"] and (
-                    (raw_event["allDay"] and prev_event["all_day"])
-                    or (event_start == prev_event["start"] and event_end == prev_event["end"])
-                ) and (
-                    raw_event["eventCategory"] == prev_event["category"]
-                ) and (
-                    raw_event["modules"] or [] == prev_event["modules"]
-                ) and (
-                    prev_event["all_day"]
-                    or (prev_event["rooms"] and prev_event["rooms"][0].lower() in html.unescape(raw_event["description"]).lower())
+                if (
+                    raw_event["id"] == prev_event["id"]
+                    and (
+                        (raw_event["allDay"] and prev_event["all_day"])
+                        or (
+                            event_start == prev_event["start"]
+                            and event_end == prev_event["end"]
+                        )
+                    )
+                    and (raw_event["eventCategory"] == prev_event["category"])
+                    and (raw_event["modules"] or [] == prev_event["modules"])
+                    and (
+                        prev_event["all_day"]
+                        or (
+                            prev_event["rooms"]
+                            and prev_event["rooms"][0].lower()
+                            in html.unescape(raw_event["description"]).lower()
+                        )
+                    )
                 ):
                     matching_event = prev_event
                     in_range_events.remove(prev_event)

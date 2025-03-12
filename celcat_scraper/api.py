@@ -16,6 +16,7 @@ from .utils import RateLimiter
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class CelcatAPI:
     """Class for interacting with Celcat Calendar API."""
 
@@ -24,18 +25,22 @@ class CelcatAPI:
         self.rate_limiter = RateLimiter(config.rate_limit)
         self.semaphore = asyncio.Semaphore(CelcatConstants.CONCURRENT_REQUESTS)
         self.timeout = CelcatConstants.TIMEOUT
-    
-    async def validate_response(self, response: ClientResponse, expected_type: str = None) -> Any:
+
+    async def validate_response(
+        self, response: ClientResponse, expected_type: str = None
+    ) -> Any:
         """Validate server response and return appropriate data type."""
         if response.status != 200:
-            error_text = await response.text(encoding='latin1')
+            error_text = await response.text(encoding="latin1")
             raise CelcatCannotConnectError(
                 f"Server returned status {response.status}: {error_text[:200]}"
             )
 
         if expected_type == "json":
             if "application/json" not in response.headers.get("Content-Type", ""):
-                raise CelcatCannotConnectError("Expected JSON response but got different content type")
+                raise CelcatCannotConnectError(
+                    "Expected JSON response but got different content type"
+                )
             return await response.json()
 
         return await response.text()
@@ -50,7 +55,9 @@ class CelcatAPI:
         elif response.status == 429:
             retry_after = int(response.headers.get("Retry-After", 30))
             self.rate_limiter.increase_backoff()
-            raise CelcatCannotConnectError(f"Rate limited. Retry after {retry_after} seconds")
+            raise CelcatCannotConnectError(
+                f"Rate limited. Retry after {retry_after} seconds"
+            )
         else:
             raise CelcatCannotConnectError(f"HTTP {response.status}: {error_msg}")
 
@@ -60,7 +67,7 @@ class CelcatAPI:
         url: str,
         federation_ids: str,
         start_date: date,
-        end_date: date
+        end_date: date,
     ) -> List[Dict[str, Any]]:
         """Fetch raw calendar data for given time period."""
         _LOGGER.info("Getting calendar raw data")
@@ -73,38 +80,25 @@ class CelcatAPI:
             "end": end_date.strftime("%Y-%m-%d"),
             "resType": "104",
             "calView": "month",
-            "federationIds[]": federation_ids
+            "federationIds[]": federation_ids,
         }
 
         url_calendar_data = url + "/Home/GetCalendarData"
-        
+
         return await self.fetch_with_retry(
-            session, 
-            "POST",
-            "json",
-            url_calendar_data, 
-            data=calendar_data
+            session, "POST", "json", url_calendar_data, data=calendar_data
         )
 
     async def get_side_bar_event_raw_data(
-        self,
-        session: ClientSession,
-        url: str,
-        event_id: str
+        self, session: ClientSession, url: str, event_id: str
     ) -> dict:
         """Fetch detailed event data by ID."""
-        sidebar_data = {
-            "eventid": event_id
-        }
+        sidebar_data = {"eventid": event_id}
 
         url_sidebar_data = url + "/Home/GetSideBarEvent"
-        
+
         return await self.fetch_with_retry(
-            session, 
-            "POST",
-            "json",
-            url_sidebar_data, 
-            data=sidebar_data
+            session, "POST", "json", url_sidebar_data, data=sidebar_data
         )
 
     async def fetch_with_retry(
@@ -113,7 +107,7 @@ class CelcatAPI:
         method: str,
         expected_type: str,
         url: str,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """Make HTTP requests with retry logic."""
         await self.rate_limiter.acquire()
@@ -126,12 +120,14 @@ class CelcatAPI:
                     async with session.request(method, url, **kwargs) as response:
                         if response.status == 200:
                             content_type = response.headers.get("Content-Type", "")
-                            
+
                             if expected_type == "json":
                                 if "application/json" in content_type:
                                     data = await response.json()
                                 else:
-                                    raise CelcatCannotConnectError(f"Expected JSON response but got different content type: {content_type}")
+                                    raise CelcatCannotConnectError(
+                                        f"Expected JSON response but got different content type: {content_type}"
+                                    )
                             else:
                                 data = await response.text()
 
@@ -143,5 +139,7 @@ class CelcatAPI:
                 except ClientError as exc:
                     self.rate_limiter.increase_backoff()
                     if attempt == CelcatConstants.MAX_RETRIES - 1:
-                        raise CelcatCannotConnectError(f"Failed after {CelcatConstants.MAX_RETRIES} attempts") from exc
-                    await asyncio.sleep(min(2 ** attempt, 10))
+                        raise CelcatCannotConnectError(
+                            f"Failed after {CelcatConstants.MAX_RETRIES} attempts"
+                        ) from exc
+                    await asyncio.sleep(min(2**attempt, 10))
