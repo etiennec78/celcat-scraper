@@ -38,6 +38,7 @@ class CelcatFilterConfig:
         rooms_title: Whether to convert room names to title case
         rooms_strip_after_number: Whether to remove text after room numbers
         sites_title: Whether to convert site names to title case
+        sites_remove_duplicates: Whether to remove duplicate sites
     """
 
     course_title: bool = True
@@ -52,6 +53,7 @@ class CelcatFilterConfig:
     rooms_title: bool = True
     rooms_strip_after_number: bool = False
     sites_title: bool = True
+    sites_remove_duplicates: bool = True
 
 
 @dataclass

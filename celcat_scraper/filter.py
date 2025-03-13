@@ -8,6 +8,7 @@ It offers various filtering options for each event attribute to facilitate class
 import logging
 import re
 from typing import Dict, Any, List, Set
+from collections import OrderedDict
 
 from .config import CelcatFilterConfig
 
@@ -132,6 +133,9 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing site information
         """
+        if self.config.sites_remove_duplicates:
+            event["sites"] = list(OrderedDict.fromkeys(event["sites"]))
+
         if self.config.sites_title:
             for i in range(len(event["sites"])):
                 event["sites"][i] = event["sites"][i].title()
