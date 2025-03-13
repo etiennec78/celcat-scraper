@@ -68,13 +68,14 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing course information
         """
-        if self.config.course_strip_modules and event.get("course_module"):
-            event["course"] = re.sub(
-                re.escape(f" [{event['course_module']}]"),
-                "",
-                event["course"],
-                flags=re.IGNORECASE,
-            )
+        if self.config.course_strip_modules and event.get("modules"):
+            for module in event["modules"]:
+                event["course"] = re.sub(
+                    re.escape(f" [{module}]"),
+                    "",
+                    event["course"],
+                    flags=re.IGNORECASE,
+                )
 
         if self.config.course_strip_category and event.get("category"):
             event["course"] = re.sub(
