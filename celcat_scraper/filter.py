@@ -10,7 +10,7 @@ import re
 from typing import Dict, Any, List, Set
 from collections import OrderedDict
 
-from .config import CelcatFilterConfig
+from .config import CelcatFilterConfig, FilterType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,10 +54,10 @@ class CelcatFilter:
             if event.get("sites"):
                 await self._filter_sites(event)
 
-        if self.config.course_strip_redundant:
+        if FilterType.COURSE_STRIP_REDUNDANT in self.config.filters:
             await self._strip_redundant_courses(events)
 
-        if self.config.course_group_similar:
+        if FilterType.COURSE_GROUP_SIMILAR in self.config.filters:
             await self._group_similar_courses(events)
 
         if self.config.course_replacements:
@@ -69,7 +69,9 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing course information
         """
-        if self.config.course_strip_modules and event.get("modules"):
+        if FilterType.COURSE_STRIP_MODULES in self.config.filters and event.get(
+            "modules"
+        ):
             for module in event["modules"]:
                 event["course"] = re.sub(
                     re.escape(f" [{module}]"),
@@ -78,7 +80,9 @@ class CelcatFilter:
                     flags=re.IGNORECASE,
                 )
 
-        if self.config.course_strip_category and event.get("category"):
+        if FilterType.COURSE_STRIP_CATEGORY in self.config.filters and event.get(
+            "category"
+        ):
             event["course"] = re.sub(
                 re.escape(f" {event['category']}"),
                 "",
@@ -86,10 +90,10 @@ class CelcatFilter:
                 flags=re.IGNORECASE,
             )
 
-        if self.config.course_strip_punctuation:
+        if FilterType.COURSE_STRIP_PUNCTUATION in self.config.filters:
             event["course"] = re.sub(r"[.,:;!?]", "", event["course"])
 
-        if self.config.course_title:
+        if FilterType.COURSE_TITLE in self.config.filters:
             event["course"] = event["course"].title()
 
     async def _filter_professors(self, event: Dict[str, Any]) -> None:
@@ -98,7 +102,7 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing professor information
         """
-        if self.config.professors_title:
+        if FilterType.PROFESSORS_TITLE in self.config.filters:
             for i in range(len(event["professors"])):
                 event["professors"][i] = event["professors"][i].title()
 
@@ -108,7 +112,7 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing room information
         """
-        if self.config.rooms_strip_after_number:
+        if FilterType.ROOMS_STRIP_AFTER_NUMBER in self.config.filters:
             for i in range(len(event["rooms"])):
                 letter = 0
                 while (
@@ -123,7 +127,7 @@ class CelcatFilter:
                     letter += 1
                 event["rooms"][i] = event["rooms"][i][:letter].rstrip()
 
-        if self.config.rooms_title:
+        if FilterType.ROOMS_TITLE in self.config.filters:
             for i in range(len(event["rooms"])):
                 event["rooms"][i] = event["rooms"][i].title()
 
@@ -133,10 +137,10 @@ class CelcatFilter:
         Args:
             event: Event dictionary containing site information
         """
-        if self.config.sites_remove_duplicates:
+        if FilterType.SITES_REMOVE_DUPLICATES in self.config.filters:
             event["sites"] = list(OrderedDict.fromkeys(event["sites"]))
 
-        if self.config.sites_title:
+        if FilterType.SITES_TITLE in self.config.filters:
             for i in range(len(event["sites"])):
                 event["sites"][i] = event["sites"][i].title()
 

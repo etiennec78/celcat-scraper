@@ -5,7 +5,8 @@ the behavior of the Celcat scraper.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, List
+from enum import Enum
+from typing import Optional, Dict, List, Set
 
 from aiohttp import ClientSession
 
@@ -21,39 +22,50 @@ class CelcatConstants:
     CONNECTION_KEEP_ALIVE = 120
 
 
+class FilterType(Enum):
+    """Available filter types for Celcat data."""
+
+    COURSE_TITLE = "course_title"
+    COURSE_STRIP_MODULES = "course_strip_modules"
+    COURSE_STRIP_CATEGORY = "course_strip_category"
+    COURSE_STRIP_PUNCTUATION = "course_strip_punctuation"
+    COURSE_GROUP_SIMILAR = "course_group_similar"
+    COURSE_STRIP_REDUNDANT = "course_strip_redundant"
+    PROFESSORS_TITLE = "professors_title"
+    ROOMS_TITLE = "rooms_title"
+    ROOMS_STRIP_AFTER_NUMBER = "rooms_strip_after_number"
+    SITES_TITLE = "sites_title"
+    SITES_REMOVE_DUPLICATES = "sites_remove_duplicates"
+
+
 @dataclass
 class CelcatFilterConfig:
     """Configuration for Celcat data filter.
 
     Attributes:
-        course_title: Whether to convert course names to title case
-        course_strip_modules: Whether to remove module codes from course names
-        course_strip_category: Whether to remove category prefixes from course names
-        course_strip_punctuation: Whether to remove punctuation from course names
-        course_group_similar: Whether to group similar course names together
-        course_strip_redundant: Whether to remove redundant elements found across multiple events
+        filters: Set of filters to apply
         course_remembered_strips: List of previously stripped strings to be reapplied in subsequent filter instances
         course_replacements: Dictionary of strings to replace in course names
-        professors_title: Whether to convert professor names to title case
-        rooms_title: Whether to convert room names to title case
-        rooms_strip_after_number: Whether to remove text after room numbers
-        sites_title: Whether to convert site names to title case
-        sites_remove_duplicates: Whether to remove duplicate sites
     """
 
-    course_title: bool = True
-    course_strip_modules: bool = True
-    course_strip_category: bool = True
-    course_strip_punctuation: bool = False
-    course_group_similar: bool = False
-    course_strip_redundant: bool = False
-    course_remembered_strips: Optional[List[str]] = field(default_factory=list)
-    course_replacements: Optional[Dict[str, str]] = field(default_factory=dict)
-    professors_title: bool = True
-    rooms_title: bool = True
-    rooms_strip_after_number: bool = False
-    sites_title: bool = True
-    sites_remove_duplicates: bool = True
+    filters: Set[FilterType] = field(default_factory=set)
+    course_remembered_strips: List[str] = field(default_factory=list)
+    course_replacements: Dict[str, str] = field(default_factory=dict)
+
+    @classmethod
+    def with_defaults(cls) -> "CelcatFilterConfig":
+        """Create a filter config with default settings."""
+        return cls(
+            filters={
+                FilterType.COURSE_TITLE,
+                FilterType.COURSE_STRIP_MODULES,
+                FilterType.COURSE_STRIP_CATEGORY,
+                FilterType.PROFESSORS_TITLE,
+                FilterType.ROOMS_TITLE,
+                FilterType.SITES_TITLE,
+                FilterType.SITES_REMOVE_DUPLICATES,
+            }
+        )
 
 
 @dataclass
@@ -72,7 +84,7 @@ class CelcatConfig:
     url: str
     username: str
     password: str
-    custom_filter: Optional[CelcatFilterConfig] = None
+    filter_config: CelcatFilterConfig = field(default_factory=CelcatFilterConfig.with_defaults)
     include_holidays: bool = True
     rate_limit: float = 0.5
     session: Optional[ClientSession] = None
