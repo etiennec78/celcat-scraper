@@ -81,7 +81,7 @@ Filtering allows these attributes to be standardized.
 import asyncio
 from datetime import date, timedelta
 import json
-from celcat_scraper import CelcatFilterConfig, CelcatConfig, CelcatScraperAsync
+from celcat_scraper import CelcatFilterConfig, FilterType, CelcatConfig, CelcatScraperAsync
 
 async def main():
     # Load remembered_strips from a file
@@ -96,19 +96,22 @@ async def main():
     course_replacements = {"English - S2": "English", "Mathematics": "Maths"}
 
     # Configure a filter
-    celcat_filter = CelcatFilterConfig(
-        course_title=True,
-        course_strip_modules=True,
-        course_strip_category=True,
-        course_strip_punctuation=True,
-        course_group_similar=True,
-        course_strip_redundant=True,
+    filter_config = CelcatFilterConfig(
+        filters = {
+            FilterType.COURSE_TITLE,
+            FilterType.COURSE_STRIP_MODULES,
+            FilterType.COURSE_STRIP_CATEGORY,
+            FilterType.COURSE_STRIP_PUNCTUATION,
+            FilterType.COURSE_GROUP_SIMILAR,
+            FilterType.COURSE_STRIP_REDUNDANT,
+            FilterType.PROFESSORS_TITLE,
+            FilterType.ROOMS_TITLE,
+            FilterType.ROOMS_STRIP_AFTER_NUMBER,
+            FilterType.SITES_TITLE,
+            FilterType.SITES_REMOVE_DUPLICATES,
+        }
         course_remembered_strips=remembered_strips,
         course_replacements=course_replacements,
-        professors_title=True,
-        rooms_title=True,
-        rooms_strip_after_number=False,
-        sites_title=True,
     )
 
     config = CelcatConfig(
@@ -117,7 +120,7 @@ async def main():
         password="your_password",
         include_holidays=True,
         # Pass the filter as an argument
-        custom_filter=celcat_filter,
+        filter_config=filter_config,
     )
 
     async with CelcatScraperAsync(config) as scraper:

@@ -18,7 +18,7 @@ from aiohttp import ClientSession, TCPConnector
 from .api import CelcatAPI
 from .filter import CelcatFilter
 from .auth import authenticate
-from .config import CelcatConfig, CelcatConstants, CelcatFilterConfig
+from .config import CelcatConfig, CelcatConstants
 from .exceptions import CelcatCannotConnectError, CelcatError
 from .types import EventData
 
@@ -48,7 +48,7 @@ class CelcatScraperAsync:
         """
         self._validate_config(config)
         self.config = config
-        self.filter = CelcatFilter(config.custom_filter or CelcatFilterConfig())
+        self.filter = CelcatFilter(config.filter_config)
         self.api = CelcatAPI(config)
         self.federation_ids: Optional[str] = None
         self.session: Optional[ClientSession] = config.session
