@@ -119,15 +119,15 @@ class CelcatScraperAsync:
         if self._external_session and self.logged_in:
             try:
                 logout_url = self.config.url + "/Login/Logout"
-                _LOGGER.info(f"Sending logout request to {logout_url}")
+                _LOGGER.info("Sending logout request to %s", logout_url)
                 async with self.session.get(logout_url) as response:
                     if response.status == 200:
                         _LOGGER.info("Successfully logged out from Celcat")
                     else:
-                        _LOGGER.warning(f"Logout returned status {response.status}")
+                        _LOGGER.warning("Logout returned status %s", response.status)
                 self.logged_in = False
             except Exception as e:
-                _LOGGER.error(f"Failed to properly logout from Celcat: {e}")
+                _LOGGER.error("Failed to properly logout from Celcat: %s", e)
         else:
             _LOGGER.info("Closing Celcat scraper session")
             await self._cleanup_session()
@@ -202,7 +202,7 @@ class CelcatScraperAsync:
 
             return processed_event
         except Exception as exc:
-            _LOGGER.error(f"Failed to process event {event['id']}: {exc}")
+            _LOGGER.error("Failed to process event %s: %s", event["id"], exc)
             raise
 
     async def _process_event_batch(self, events: List[dict]) -> List[EventData]:
@@ -213,13 +213,13 @@ class CelcatScraperAsync:
                 if not event["allDay"] or self.config.include_holidays:
                     return await self._process_event(event)
             except Exception as exc:
-                _LOGGER.error(f"Failed to process event {event.get('id')}: {exc}")
+                _LOGGER.error("Failed to process event %s: %s", event.get("id"), exc)
             return None
 
         tasks = [process_single_event(event) for event in events]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        _LOGGER.info(f"Finished processing new events with {len(events)} requests")
+        _LOGGER.info("Finished processing new events with %s requests", len(events))
         events = [r for r in results if r is not None and not isinstance(r, Exception)]
 
         await self.filter.filter_events(events)
@@ -369,7 +369,7 @@ class CelcatScraperAsync:
                 _LOGGER.debug("Event data requested")
 
         final_events.extend(out_of_range_events)
-        _LOGGER.info(f"Finished processing events with {total_requests} requests")
+        _LOGGER.info("Finished processing events with %s requests", total_requests)
 
         await self.filter.filter_events(final_events)
         return final_events

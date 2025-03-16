@@ -181,7 +181,7 @@ class CelcatFilter:
                     if strip not in previous_strips and strip not in new_strips:
                         new_strips.append(strip)
 
-        _LOGGER.debug(f"New items to strip: {new_strips}")
+        _LOGGER.debug("New items to strip: %s", new_strips)
         return new_strips
 
     async def _get_courses_names(
@@ -243,7 +243,7 @@ class CelcatFilter:
             items_to_strip: List of words to remove from course names
         """
         if self.config.course_strip_redundant:
-            _LOGGER.debug(f"Items to strip: {items_to_strip}")
+            _LOGGER.debug("Items to strip: %s", items_to_strip)
             for event in events:
                 pattern_parts = [
                     r"\b" + re.escape(item) + r"\b" for item in items_to_strip
