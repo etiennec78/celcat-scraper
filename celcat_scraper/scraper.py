@@ -54,6 +54,7 @@ class CelcatScraperAsync:
         self.session: Optional[ClientSession] = config.session
         self._external_session = bool(config.session)
         self.logged_in: bool = False
+        self._timeout = CelcatConstants.TIMEOUT
 
         self._headers = {
             "Accept-Encoding": ", ".join(CelcatConstants.COMPRESSION_TYPES),
