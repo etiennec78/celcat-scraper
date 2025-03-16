@@ -10,7 +10,7 @@ pip install celcat-scraper
 
 ## Features 🌟
 
-* Event attributes filtering 🔎
+* Event data filtering 🧹
 * Async/await support for better performance 🔀
 * Rate limiting with adaptive backoff ⏳
 * Optional caching support 💾
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Filtering 🔍
+## Filtering 🧹
 
 Celcat Calendar data is often messy, and needs to be processed before it can be used.
 For example, the same course may have several different names in different events.
@@ -141,3 +141,16 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+### Available Filters 🧹
+
+| Filter | Description | Example |
+| :---: | :--- | :--- |
+| *_TITLE | Capitalize only the first letter of each word | MATHS CLASS -> Maths Class |
+| COURSE_STRIP_MODULES | Remove modules from courses names | Maths [DPAMAT2D] -> Maths |
+| COURSE_STRIP_CATEGORY | Remove category from course names | Maths CM -> Maths |
+| COURSE_STRIP_PUNCTUATION | Remove ".,:;!?" from text | Math. -> Math |
+| COURSE_GROUP_SIMILAR | Search for all event names and group ones containing another | Maths, Maths S1 -> Maths |
+| COURSE_STRIP_REDUNDANT | Extract parts removed by the previous filter and remove them from all other courses | Physics S1 -> Physics |
+| ROOMS_STRIP_AFTER_NUMBER | Remove all text after the first number found | Room 403 32 seats -> Room 403 |
+| SITES_REMOVE_DUPLICATES | Remove duplicates from the list | Building A, Building A -> Building A |
