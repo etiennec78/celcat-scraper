@@ -127,8 +127,8 @@ class CelcatScraperAsync:
                     else:
                         _LOGGER.warning("Logout returned status %s", response.status)
                 self.logged_in = False
-            except Exception as e:
-                _LOGGER.error("Failed to properly logout from Celcat: %s", e)
+            except Exception as exc:
+                _LOGGER.error("Failed to properly logout from Celcat: %s", exc)
         else:
             _LOGGER.info("Closing Celcat scraper session")
             await self._cleanup_session()
@@ -150,8 +150,8 @@ class CelcatScraperAsync:
                 )
 
                 self.federation_ids = federation_ids
-                self.logged_in = True
-                return True
+                self.logged_in = success
+                return success
 
         except Exception as exc:
             await self._cleanup_session()
