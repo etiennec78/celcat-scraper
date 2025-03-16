@@ -361,12 +361,12 @@ class CelcatScraperAsync:
 
             if matching_event:
                 final_events.append(matching_event)
-                _LOGGER.debug("Event data recycled")
+                _LOGGER.debug("Event data recycled for ID: %s", raw_event["id"])
             else:
                 processed_event = await self._process_event(raw_event)
                 final_events.append(processed_event)
                 total_requests += 1
-                _LOGGER.debug("Event data requested")
+                _LOGGER.debug("Event data requested for ID: %s", raw_event["id"])
 
         final_events.extend(out_of_range_events)
         _LOGGER.info("Finished processing events with %s requests", total_requests)
