@@ -103,8 +103,8 @@ class CelcatFilter:
             event: Event dictionary containing professor information
         """
         if FilterType.PROFESSORS_TITLE in self.config.filters:
-            for i in range(len(event["professors"])):
-                event["professors"][i] = event["professors"][i].title()
+            for i, professor in enumerate(event["professors"]):
+                event["professors"][i] = professor.title()
 
     async def _filter_rooms(self, event: Dict[str, Any]) -> None:
         """Apply configured filters to room names.
@@ -113,23 +113,17 @@ class CelcatFilter:
             event: Event dictionary containing room information
         """
         if FilterType.ROOMS_STRIP_AFTER_NUMBER in self.config.filters:
-            for i in range(len(event["rooms"])):
+            for i, room in enumerate(event["rooms"]):
                 letter = 0
-                while (
-                    letter < len(event["rooms"][i])
-                    and not event["rooms"][i][letter].isnumeric()
-                ):
+                while letter < len(room) and not room[letter].isnumeric():
                     letter += 1
-                while (
-                    letter < len(event["rooms"][i])
-                    and not event["rooms"][i][letter].isalpha()
-                ):
+                while letter < len(room) and not room[letter].isalpha():
                     letter += 1
-                event["rooms"][i] = event["rooms"][i][:letter].rstrip()
+                event["rooms"][i] = room[:letter].rstrip()
 
         if FilterType.ROOMS_TITLE in self.config.filters:
-            for i in range(len(event["rooms"])):
-                event["rooms"][i] = event["rooms"][i].title()
+            for i, room in enumerate(event["rooms"]):
+                event["rooms"][i] = room.title()
 
     async def _filter_sites(self, event: Dict[str, Any]) -> None:
         """Apply configured filters to site names.
@@ -141,8 +135,8 @@ class CelcatFilter:
             event["sites"] = list(OrderedDict.fromkeys(event["sites"]))
 
         if FilterType.SITES_TITLE in self.config.filters:
-            for i in range(len(event["sites"])):
-                event["sites"][i] = event["sites"][i].title()
+            for i, site in enumerate(event["sites"]):
+                event["sites"][i] = site.title()
 
     async def _strip_redundant_courses(self, events: List[Dict[str, Any]]) -> None:
         """Remove redundant parts from course names across all events.
@@ -151,7 +145,7 @@ class CelcatFilter:
             events: List of event dictionaries
         """
         new_strips = None
-        while new_strips != []:
+        while new_strips:
             new_strips = await self._find_new_course_strips(
                 events, self.config.course_remembered_strips
             )
@@ -181,7 +175,7 @@ class CelcatFilter:
                     if strip not in previous_strips and strip not in new_strips:
                         new_strips.append(strip)
 
-        _LOGGER.debug(f"New items to strip: {new_strips}")
+        _LOGGER.debug("New items to strip: %s", new_strips)
         return new_strips
 
     async def _get_courses_names(
@@ -242,15 +236,14 @@ class CelcatFilter:
             events: List of event dictionaries
             items_to_strip: List of words to remove from course names
         """
-        if self.config.course_strip_redundant:
-            _LOGGER.debug(f"Items to strip: {items_to_strip}")
-            for event in events:
-                pattern_parts = [
-                    r"\b" + re.escape(item) + r"\b" for item in items_to_strip
-                ]
-                pattern = re.compile("|".join(pattern_parts), re.IGNORECASE)
-                result = pattern.sub("", event["course"])
-                event["course"] = re.sub(r"\s+", " ", result).strip()
+        _LOGGER.debug("Items to strip: %s", items_to_strip)
+        for event in events:
+            pattern_parts = [
+                r"\b" + re.escape(item) + r"\b" for item in items_to_strip
+            ]
+            pattern = re.compile("|".join(pattern_parts), re.IGNORECASE)
+            result = pattern.sub("", event["course"])
+            event["course"] = re.sub(r"\s+", " ", result).strip()
 
     async def _group_similar_courses(self, events: List[Dict[str, Any]]) -> None:
         """Group similar course names together.
@@ -261,15 +254,16 @@ class CelcatFilter:
         courses = await self._get_courses_names(events)
         replacements = {}
 
-        for i in range(len(courses) - 1):
+        for course_i in courses[:-1]:
             courses_corresponding = []
-            shortest_course = courses[i]
-            for j in range(len(courses)):
-                if shortest_course in courses[j]:
-                    courses_corresponding.append(courses[j])
-                elif courses[j] in shortest_course:
+            shortest_course = course_i
+
+            for course_j in courses:
+                if shortest_course in course_j:
+                    courses_corresponding.append(course_j)
+                elif course_j in shortest_course:
                     courses_corresponding.append(shortest_course)
-                    shortest_course = courses[j]
+                    shortest_course = course_j
 
             for course in courses_corresponding:
                 replacements[course] = shortest_course
