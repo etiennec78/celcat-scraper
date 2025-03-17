@@ -7,11 +7,13 @@ throughout the Celcat scraper.
 from datetime import datetime
 from typing import List, TypedDict
 
+
 class EventData(TypedDict):
     """Type definition for event data.
 
     Represents a calendar event with all its attributes.
     """
+
     id: str
     start: datetime
     end: datetime

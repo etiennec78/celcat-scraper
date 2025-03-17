@@ -14,11 +14,9 @@ from .exceptions import CelcatCannotConnectError, CelcatInvalidAuthError, Celcat
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def authenticate(
-    session: ClientSession,
-    url: str,
-    username: str,
-    password: str
+    session: ClientSession, url: str, username: str, password: str
 ) -> Tuple[bool, Optional[str]]:
     """Authenticate to Celcat.
 
@@ -57,13 +55,13 @@ async def authenticate(
             login_data = {
                 "Name": username,
                 "Password": password,
-                "__RequestVerificationToken": token_element["value"]
+                "__RequestVerificationToken": token_element["value"],
             }
 
             async with session.post(
                 f"{url}/LdapLogin/Logon",
                 data=login_data,
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             ) as response:
                 if response.status != 200:
                     error_text = await response.text(encoding="latin1")
@@ -80,7 +78,9 @@ async def authenticate(
         raise CelcatCannotConnectError("Failed to connect to Celcat service") from exc
 
 
-def _process_login_response(response_url, page_content: str) -> Tuple[bool, Optional[str]]:
+def _process_login_response(
+    response_url, page_content: str
+) -> Tuple[bool, Optional[str]]:
     """Process login response and extract federation IDs.
 
     Returns:
@@ -96,20 +96,29 @@ def _process_login_response(response_url, page_content: str) -> Tuple[bool, Opti
 
     if login_button_state == "Log Out":
         federation_ids = next(
-            (param.split("=")[1] for param in str(response_url).split("&")
-             if param.startswith("FederationIds=")),
-            None
+            (
+                param.split("=")[1]
+                for param in str(response_url).split("&")
+                if param.startswith("FederationIds=")
+            ),
+            None,
         )
 
         if federation_ids is None:
-            _LOGGER.debug("FederationIds could not be retrieved. Trying to extract from page")
+            _LOGGER.debug(
+                "FederationIds could not be retrieved. Trying to extract from page"
+            )
             extracted = soup.find("span", class_="small")
             if extracted:
-                federation_ids = extracted.text.lstrip('-').strip()
+                federation_ids = extracted.text.lstrip("-").strip()
                 if not federation_ids.isdigit():
-                    raise CelcatCannotConnectError(f"Federation ids could not be extracted from '{federation_ids}'")
+                    raise CelcatCannotConnectError(
+                        f"Federation ids could not be extracted from '{federation_ids}'"
+                    )
             else:
-                raise CelcatCannotConnectError("Federation ids class could not be found")
+                raise CelcatCannotConnectError(
+                    "Federation ids class could not be found"
+                )
 
         _LOGGER.debug("Successfully logged in to Celcat")
         return True, federation_ids
