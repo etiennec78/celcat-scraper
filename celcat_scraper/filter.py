@@ -144,11 +144,13 @@ class CelcatFilter:
         Args:
             events: List of event dictionaries
         """
-        new_strips = None
-        while new_strips:
+        while True:
             new_strips = await self._find_new_course_strips(
                 events, self.config.course_remembered_strips
             )
+            if not new_strips:
+                break
+
             self.config.course_remembered_strips += new_strips
             await self._strip_courses(events, self.config.course_remembered_strips)
 
