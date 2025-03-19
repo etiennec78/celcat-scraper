@@ -148,11 +148,12 @@ class CelcatFilter:
             new_strips = await self._find_new_course_strips(
                 events, self.config.course_remembered_strips
             )
-            if not new_strips:
-                break
 
             self.config.course_remembered_strips += new_strips
             await self._strip_courses(events, self.config.course_remembered_strips)
+
+            if not new_strips:
+                break
 
     async def _find_new_course_strips(
         self, events: List[Dict[str, Any]], previous_strips: List[str]
