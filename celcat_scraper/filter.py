@@ -117,9 +117,9 @@ class CelcatFilter:
                 letter = 0
                 while letter < len(room) and not room[letter].isnumeric():
                     letter += 1
-                while letter < len(room) and not room[letter].isalpha():
+                while letter < len(room) and room[letter].isnumeric():
                     letter += 1
-                event["rooms"][i] = room[:letter].rstrip()
+                event["rooms"][i] = room[:letter]
 
         if FilterType.ROOMS_TITLE in self.config.filters:
             for i, room in enumerate(event["rooms"]):
